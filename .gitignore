@@ -1,0 +1,16 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.ipynb
+core.*
+
+.idea/
+.vscode/
+tmp/
+experiments/
+figures/
+literature/
+
+nohup.out
+run.sh
+*.log
