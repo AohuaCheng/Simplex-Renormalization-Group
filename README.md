@@ -1,5 +1,7 @@
 # Simplex-Renormalization-Group
 
+A toolbox for simplex path integral and renormalization group for high-order interactions
+
 ## demo
 
 ```bash
