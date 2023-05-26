@@ -23,10 +23,90 @@ def LRG_BA():
     config.conditions = [2]
     config.trials = list(range(50))
 
-    config.tau_star = 1.26
+    config.tau_star = .1
+    config.binary = 0.6
     
     config_ranges = OrderedDict()
-    config_ranges['binary'] = [0.6]
+    configs = vary_config(config, config_ranges, mode='combinatorial')
+    return configs
+
+def LRG_ER():
+    config = BaseConfig()
+    config.experiment_name = 'LRG_ER'
+    config.analysis_type = 'LRG'
+    
+    config.dataset = 'ER'
+    config.conditions = [0.01]
+    config.trials = list(range(50))
+
+    config.tau_star = .1
+    config.binary = 0.6
+    
+    config_ranges = OrderedDict()
+    configs = vary_config(config, config_ranges, mode='combinatorial')
+    return configs
+
+def LRG_WS():
+    config = BaseConfig()
+    config.experiment_name = 'LRG_WS'
+    config.analysis_type = 'LRG'
+    
+    config.dataset = 'WS'
+    config.conditions = [10]
+    config.trials = list(range(50))
+
+    config.tau_star = .1
+    config.binary = 0.6
+    
+    config_ranges = OrderedDict()
+    configs = vary_config(config, config_ranges, mode='combinatorial')
+    return configs
+
+def LRG_PROTEINS():
+    config = BaseConfig()
+    config.experiment_name = 'LRG_PROTEINS'
+    config.analysis_type = 'LRG'
+    
+    config.dataset = 'PROTEINS'
+    config.conditions = []
+    config.trials = []
+
+    config.tau_star = .2
+    config.binary = 0.6
+    
+    config_ranges = OrderedDict()
+    configs = vary_config(config, config_ranges, mode='combinatorial')
+    return configs
+
+def LRG_ENZYMES():
+    config = BaseConfig()
+    config.experiment_name = 'LRG_ENZYMES'
+    config.analysis_type = 'LRG'
+    
+    config.dataset = 'ENZYMES'
+    config.conditions = []
+    config.trials = []
+
+    config.tau_star = .2
+    config.binary = 0.6
+    
+    config_ranges = OrderedDict()
+    configs = vary_config(config, config_ranges, mode='combinatorial')
+    return configs
+
+def LRG_DD():
+    config = BaseConfig()
+    config.experiment_name = 'LRG_DD'
+    config.analysis_type = 'LRG'
+    
+    config.dataset = 'DD'
+    config.conditions = []
+    config.trials = []
+
+    config.tau_star = .1
+    config.binary = 0.6
+    
+    config_ranges = OrderedDict()
     configs = vary_config(config, config_ranges, mode='combinatorial')
     return configs
 

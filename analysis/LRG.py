@@ -9,6 +9,7 @@ import scipy
 from scipy.linalg import expm
 import networkx as nx
 from itertools import permutations
+import powerlaw
 
 from configs.config_global import FIG_DIR
 from analysis.plots import get_plot_path, get_plot_colors
@@ -17,7 +18,7 @@ class multi_LRG(object):
     def __init__(self, config, info, Adj):
         super(multi_LRG, self).__init__()
         # graph parameters
-        self.dataset = config.dataset # the type of data, e.g. BA, neuro
+        self.dataset = config.dataset # the type of data, e.g. BA, ER
         self.Adj = Adj
         self.N = Adj.shape[0]
         self.G = nx.Graph(Adj)
@@ -186,6 +187,7 @@ class multi_LRG(object):
             L_i = RG_Ls[i]
             EdgeCV = range(len(list(G_i.edges())))
             nx.draw_networkx(G_i,pos=nx.random_layout(G_i),with_labels=False,node_size=100,node_color=np.diag(np.abs(L_i))/np.max(np.abs(L_i)+1)*255, cmap=mpl.colormaps['BuGn'], vmin=-80, edge_color=EdgeCV, edge_cmap=mpl.colormaps['Blues'], width=2,alpha=0.8,linewidths=1,edgecolors=[0,0.5,0.6])
+            plt.axis('off')
             plt.savefig(osp.join(fig_path, 'LRG_graphs_{}_d_{}_s{}'.format(self.dataset, d, i)+'.png'), bbox_inches='tight', pad_inches=0)
             plt.close()
 
@@ -231,11 +233,11 @@ class multi_LRG(object):
         colors = get_plot_colors(self.rg_steps+1, 'YlGnBu')
         plt.figure(dpi=400)
         for i in range(self.rg_steps+1):
-            rg_L = RG_Ls[i]
-            Evals, _ = np.linalg.eig(rg_L)
+            L_i = RG_Ls[i]
+            Evals, _ = np.linalg.eig(L_i)
             Evals = np.real(Evals)
             Evals[np.where(Evals<1e-10)] = 0
-            hists, bins = np.histogram(Evals, bins=50)
+            hists, bins = np.histogram(Evals, bins=100)
             x = [(bins[i]+bins[i+1])/2 for i in range(len(bins)-1)]
             y = [z/float(sum(hists)) for z in hists]
             plt.scatter(x, y, s=100, color=colors[i], alpha=0.7,linewidths=2, edgecolors=[0,0.5,0.6])
@@ -247,13 +249,13 @@ class multi_LRG(object):
         plt.savefig(osp.join(fig_path, 'LRG_spectral_probability_distribution_{}_d_{}'.format(self.dataset, d)+'.png'), bbox_inches='tight')
         plt.close()
     
-    def LRG_condition_plot(self, config, trial_info, d, c):
+    def LRG_condition_plot(self, config, trial_info, d):
         fig_path =  osp.join(FIG_DIR, config.experiment_name, config.dataset_name)
 
         colors = get_plot_colors(self.rg_steps+1)
         fig = plt.figure(dpi=400)
         fig.subplots_adjust(hspace=0.6, wspace=0.3)
-        sns.set(context='notebook', style='ticks', font_scale=1.5)
+        sns.set(context='notebook', style='ticks', font_scale=2)
         # degree distribution
         plt.subplot(1,2,1)
         for s in range(self.rg_steps+1):
@@ -276,9 +278,6 @@ class multi_LRG(object):
             plt.scatter(x, y, s=100, color=colors[s], alpha=0.7, linewidths=2, edgecolors=[0,0.5,0.6])
         plt.xscale('log')
         plt.yscale('log')
-        plt.xlabel('Degree', fontsize=25)
-        plt.ylabel('Probability', fontsize=25)
-
         # spectral probability distribution
         plt.subplot(1,2,2)
         for s in range(self.rg_steps+1):
@@ -297,9 +296,6 @@ class multi_LRG(object):
             plt.scatter(x, y, s=100, color=colors[s], alpha=0.7, linewidths=2, edgecolors=[0,0.5,0.6])
         plt.xscale('log')
         plt.yscale('log')
-        plt.xlabel('Eigenvalue', fontsize=25)
-        # plt.ylabel('Probability', fontsize=25)
-        plt.xticks([1e0,1.5e0,2e0])
         plt.tight_layout()
         plt.savefig(osp.join(fig_path, '{}_mean_LRG_degree_spectral_distribution_{}_d_{}'.format(info[0], config.dataset, d)+'.png'), bbox_inches='tight')
         plt.close()
@@ -332,184 +328,160 @@ class multi_LRG(object):
         return KS
 
     def LRG_allplot(self, config, data_info, d):
-        fig_path =  osp.join(FIG_DIR, config.experiment_name, config.dataset_name)
         sns.set(context='notebook', style='ticks', font_scale=2)
 
         # mean degree violin plot
-        colors = get_plot_colors(len(data_info)+20, 'GnBu')
-        C_KS = []
-        NC_KS = []
-        C_labels = []
-        NC_labels = []
+        F_KS = []
+        NF_KS = []
+        F_infos = []
+        NF_infos = []
         for trial_info in data_info:
-            cdf_steps = []
-            for s in range(self.rg_steps+1):
-                deg_list= []
-                for i, info in enumerate(trial_info):
-                    save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
-                    RG_graphs = nx.gpickle.read_gpickle(osp.join(save_path, 'RG_graphs_d{}.gpickle'.format(d)))
+            for _, info in enumerate(trial_info):
+                cdf_steps = []
+                save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
+                RG_graphs = nx.gpickle.read_gpickle(osp.join(save_path, 'RG_graphs_d{}.gpickle'.format(d)))
+                for s in range(self.rg_steps+1):
                     degree = nx.degree_histogram(RG_graphs[s])
-                    deg_list.append(degree)
-                max_deg = max([len(deg) for deg in deg_list])
-                deg_array = np.zeros([len(deg_list), max_deg])
-                for i, deg in enumerate(deg_list):
-                    for j in range(len(deg)):
-                        deg_array[i, j] = deg[j]
-                mean_deg = np.mean(deg_array, axis=0)
-                cdf = np.cumsum(mean_deg)/np.sum(mean_deg)
-                cdf_steps.append(cdf)
-            KS = self.KS_statistics(cdf_steps)
-            idx, = np.where(np.array(KS)>1e-2)
-            if len(idx) < 0.5*len(KS):
-                C_KS.append(KS)
-                C_labels.append(trial_info[0][0])
-            else:
-                NC_KS.append(KS)
-                NC_labels.append(trial_info[0][0])
-        
-        all_KS = np.array(C_KS + NC_KS).T
-        labels = C_labels + NC_labels
-        
-        plt.figure(dpi=400, figsize=(5,15))
-        violin = plt.violinplot(all_KS, vert=False, widths=1)
-        for c, patch in enumerate(violin['bodies']):
-            patch.set_facecolor(colors[c+20])
-            patch.set_alpha(1)
-        plt.xlabel('KS statistic', fontsize=30)
-        plt.ylabel('Brain regions', fontsize=30)
-        plt.yticks(np.arange(1, 1*(len(labels) + 1), 1), labels=labels)
-        plt.ylim(0.25, len(labels) + 0.75)
-        plt.savefig(osp.join(fig_path, 'LRG_KS_violin_d_{}'.format(d)+'.png'), bbox_inches='tight')
-        plt.close()
+                    cdf = np.cumsum(degree)/np.sum(degree)
+                    cdf_steps.append(cdf)
+                KS = self.KS_statistics(cdf_steps)
+                idx, = np.where(np.array(KS)>2e-1)
+                if len(idx) < 0.5*len(KS):
+                    F_KS.append(KS)
+                    F_infos.append(info)
+                else:
+                    NF_KS.append(KS)
+                    NF_infos.append(info)
 
-        # unaverage
-        Labels = ['ORB','RSP'] # scale-free regions of order 1
-        # Labels = ['APN','MRN','VPM', 'VISrl']  # scale-dependent regions of order 1
+        # fixed points plot
+        self.plot_fixed_distribution(config, NF_infos, d, type='NF')
         
-        colors = get_plot_colors(len(data_info)+20, 'GnBu')
+        # scale-free plot
+        S_infos, NS_infos = self.find_SF_infos(config, F_infos, d)
+        
+        self.plot_scale_distribution(config, S_infos, d, type='S')
+        self.plot_scale_distribution(config, NS_infos, d, type='NS')
+    
+    def plot_fixed_distribution(self, config, infos, d, type='NF'):
+        fig_path = osp.join(FIG_DIR, config.experiment_name, config.dataset_name)
+        sns.set(context='notebook', style='ticks', font_scale=2)
+        colors = get_plot_colors(len(infos)+20, 'GnBu')
+
         fig = plt.figure(dpi=400)
         fig.subplots_adjust(hspace=0.5, wspace=0.05)
         # degree distribution
         plt.subplot(1,2,1)
-        c = 0
-        for trial_info in data_info:
-            if trial_info[0][0] not in C_labels:
-                continue
-            else:
-                if trial_info[0][0] not in Labels:
-                    c += 1
-                    continue
+        for c, info in enumerate(infos):
+            save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
+            RG_graphs = nx.gpickle.read_gpickle(osp.join(save_path, 'RG_graphs_d{}.gpickle'.format(d)))
             for s in range(self.rg_steps+1):
-                deg_list = []
-                for info in trial_info:
-                    save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
-                    RG_graphs = nx.gpickle.read_gpickle(osp.join(save_path, 'RG_graphs_d{}.gpickle'.format(d)))
-                    deg = nx.degree_histogram(RG_graphs[s])
-                    deg_list.append(deg)
-                max_deg = max([len(deg) for deg in deg_list])
-                deg_array = np.zeros([len(deg_list), max_deg])
-                for i, deg in enumerate(deg_list):
-                    for j in range(len(deg)):
-                        deg_array[i, j] = deg[j]
-
-                mean_deg = np.mean(deg_array, axis=0)
-                x = range(mean_deg.shape[0])
-                y = [z/float(sum(mean_deg)) for z in mean_deg]
+                deg = nx.degree_histogram(RG_graphs[s])
+                x = range(len(deg))
+                y = [z/float(sum(deg)) for z in deg]
                 y = scipy.signal.savgol_filter(y,2,1)
                 plt.scatter(x, y, s=50, color=colors[c+20], alpha=1, linewidths=0, edgecolors=[0,0.5,0.6])
-            c += 1
         plt.xscale('log')
         plt.yscale('log')
-        plt.xlabel('Degree', fontsize=35)
-        plt.ylabel('Probability', fontsize=35)
 
         # spectral probability distribution
         plt.subplot(1,2,2)
-        c = 0
-        for trial_info in data_info:
-            if trial_info[0][0] not in C_labels:
-                continue
-            else:
-                if trial_info[0][0] not in Labels:
-                    c += 1
-                    continue
+        for c, info in enumerate(infos):
+            save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
+            RG_Ls = np.load(osp.join(save_path, 'RG_Ls_d{}.npy'.format(d)), allow_pickle=True)
             for s in range(self.rg_steps+1):
-                Evals_list = []
-                for info in trial_info:
-                    save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
-                    RG_Ls = np.load(osp.join(save_path, 'RG_Ls_d{}.npy'.format(d)), allow_pickle=True)
-                    Evals, _ = np.linalg.eig(RG_Ls[s])
-                    Evals = np.real(Evals)
-                    Evals[np.where(Evals<1e-10)] = 0
-                    Evals_list.append(Evals)
-                All_Evals = np.concatenate(Evals_list)
-                hists, bins = np.histogram(All_Evals, bins=20)
+                Evals, _ = np.linalg.eig(RG_Ls[s])
+                Evals = np.real(Evals)
+                # Evals[np.where(Evals<1e-10)] = 0
+                hists, bins = np.histogram(Evals, bins=50)
                 x = [(bins[i]+bins[i+1])/2 for i in range(len(bins)-1)]
                 y = [z/float(sum(hists)) for z in hists]
                 plt.scatter(x, y, s=50, color=colors[c+20], alpha=1, linewidths=0, edgecolors=[0,0.5,0.6])
-            c += 1
         plt.xscale('log')
         plt.yscale('log')
-        plt.xlabel('Eigenvalue', fontsize=35)
-        plt.ylabel('Probability', fontsize=35)
         plt.tight_layout()
-        plt.savefig(osp.join(fig_path, 'CriticalSF_LRG_degree_spectral_distribution_d_{}'.format(d)+'.png'), bbox_inches='tight', pad_inches=0.4)
+        plt.subplots_adjust(left=0.15,right=0.95,top=0.95,bottom=0.15)
+        plt.savefig(osp.join(fig_path, '{}_LRG_degree_spectral_distribution_d_{}'.format(type, d)+'.png'))
         plt.close()
 
-        # average
-        colors = get_plot_colors(self.rg_steps+1)
+    def plot_scale_distribution(self, config, infos, d, type='S'):
+        fig_path = osp.join(FIG_DIR, config.experiment_name, config.dataset_name)
+        sns.set(context='notebook', style='ticks', font_scale=2)
+        colors = get_plot_colors(self.rg_steps+1, 'GnBu')
         fig = plt.figure(dpi=400)
         fig.subplots_adjust(hspace=0.5, wspace=0.05)
         # degree distribution
         plt.subplot(1,2,1)
         for s in range(self.rg_steps+1):
             deg_list = []
-            for trial_info in data_info:
-                if trial_info[0][0] not in Labels:
-                    continue
-                for info in trial_info:
-                    save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
-                    RG_graphs = nx.gpickle.read_gpickle(osp.join(save_path, 'RG_graphs_d{}.gpickle'.format(d)))
-                    deg = nx.degree_histogram(RG_graphs[s])
-                    deg_list.append(deg)
-            max_deg = max([len(deg) for deg in deg_list])
-            deg_array = np.zeros([len(deg_list), max_deg])
-            for i, deg in enumerate(deg_list):
-                for j in range(len(deg)):
-                    deg_array[i, j] = deg[j]
-
-            mean_deg = np.mean(deg_array, axis=0)
-            x = range(mean_deg.shape[0])
-            y = [z/float(sum(mean_deg)) for z in mean_deg]
+            for info in infos:
+                save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
+                RG_graphs = nx.gpickle.read_gpickle(osp.join(save_path, 'RG_graphs_d{}.gpickle'.format(d)))
+                deg = np.array(list(dict(nx.degree(RG_graphs[s])).values()))
+                deg_list.append(deg[np.where(deg>float(info[2]))[0]])
+            All_deg = np.concatenate(deg_list)
+            hists, bins = np.histogram(All_deg, bins=20)
+            x = [(bins[i]+bins[i+1])/2 for i in range(len(bins)-1)]
+            y = [z/float(sum(hists)) for z in hists]
             y = scipy.signal.savgol_filter(y,2,1)
             plt.scatter(x, y, s=50, color=colors[s], alpha=0.7, linewidths=2, edgecolors=[0,0.5,0.6])
-        plt.xscale('log')
+        plt.xscale('log', subs=[2,3,4,5,6,7,8,9])
         plt.yscale('log')
-        plt.xlabel('Degree', fontsize=35)
-        plt.ylabel('Probability', fontsize=35)
-
         # spectral probability distribution
         plt.subplot(1,2,2)
         for s in range(self.rg_steps+1):
             Evals_list = []
-            for trial_info in data_info:
-                if trial_info[0][0] not in Labels:
-                    continue
-                for info in trial_info:
-                    save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
-                    RG_Ls = np.load(osp.join(save_path, 'RG_Ls_d{}.npy'.format(d)), allow_pickle=True)
-                    Evals, _ = np.linalg.eig(RG_Ls[s])
-                    Evals = np.real(Evals)
-                    Evals_list.append(Evals)
+            for info in infos:
+                save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
+                RG_Ls = np.load(osp.join(save_path, 'RG_Ls_d{}.npy'.format(d)), allow_pickle=True)
+                Evals, _ = np.linalg.eig(RG_Ls[s])
+                Evals = np.real(Evals)
+                Evals_list.append(Evals[np.where(Evals>float(info[3]))[0]])
             All_Evals = np.concatenate(Evals_list)
             hists, bins = np.histogram(All_Evals, bins=20)
             x = [(bins[i]+bins[i+1])/2 for i in range(len(bins)-1)]
             y = [z/float(sum(hists)) for z in hists]
+            y = scipy.signal.savgol_filter(y,2,1)
             plt.scatter(x, y, s=50, color=colors[s], alpha=0.7, linewidths=2, edgecolors=[0,0.5,0.6])
-        plt.xscale('log')
+        plt.xscale('log', subs=[2,3,4,5,6,7,8,9])
         plt.yscale('log')
-        plt.xlabel('Eigenvalue', fontsize=35)
-        plt.ylabel('Probability', fontsize=35)
         plt.tight_layout()
-        plt.savefig(osp.join(fig_path, 'CriticalSF_mean_LRG_degree_spectral_distribution_d_{}'.format(d)+'.png'), bbox_inches='tight', pad_inches=0.4)
+        plt.subplots_adjust(left=0.15,right=0.95,top=0.95,bottom=0.15)
+        plt.savefig(osp.join(fig_path, '{}_LRG_degree_spectral_distribution_d_{}'.format(type, d)+'.png'))
         plt.close()
+    
+    def find_SF_infos(self, config, F_infos, d):
+        Degree_DValue = np.zeros((len(F_infos)))
+        Eigen_DValue = np.zeros((len(F_infos)))
+        Degree_RValue = np.zeros((len(F_infos)))
+        Eigen_RValue = np.zeros((len(F_infos)))
+        Degree_pValue = np.zeros((len(F_infos)))
+        Eigen_pValue = np.zeros((len(F_infos)))
+        for i, info in enumerate(F_infos):
+            x=np.zeros(1)
+            x1=np.zeros(1)
+            for s in range(self.rg_steps+1):
+                save_path = osp.join(config.save_path, '{}_{}'.format(info[0],info[1]))
+                RG_graphs = nx.gpickle.read_gpickle(osp.join(save_path, 'RG_graphs_d{}.gpickle'.format(d)))
+                deg = list(dict(nx.degree(RG_graphs[s])).values())
+                x =np.concatenate((x,deg))
+
+                RG_Ls = np.load(osp.join(save_path, 'RG_Ls_d{}.npy'.format(d)), allow_pickle=True)
+                Evals, _ = np.linalg.eig(RG_Ls[s])
+                Evals = np.real(Evals)
+                x1 = np.concatenate((x1,Evals))
+            x = x[1:]
+            x1 = x1[1:]
+            results = powerlaw.Fit(x, discrete=True, xmin=[0,5])
+            results1 = powerlaw.Fit(x1, xmin=[0,3])
+            F_infos[i].append(results.xmin)
+            F_infos[i].append(results1.xmin)
+            
+            Degree_DValue[i] = results.D
+            Eigen_DValue[i] = results1.D
+            Degree_RValue[i], Degree_pValue[i] = results.distribution_compare('power_law','lognormal',normalized_ratio=True)
+            Eigen_RValue[i], Eigen_pValue[i] = results1.distribution_compare('power_law','lognormal',normalized_ratio=True)
+
+        DValue=0.5*(Degree_DValue+Eigen_DValue)
+        S_infos=np.array(F_infos)[np.where(DValue<=0.12)[0]] ## 0.12 DD 0.15
+        NS_infos=np.array(F_infos)[np.where(DValue>0.12)[0]]
+        return S_infos, NS_infos

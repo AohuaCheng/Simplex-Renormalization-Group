@@ -12,7 +12,7 @@ def dataset_analyze(config):
     
     # analysis
     for data_set, data_info in zip(Data.data_sets, Data.data_infos):
-        for c, (trials, trial_info) in enumerate(zip(data_set, data_info)):
+        for trials, trial_info in zip(data_set, data_info):
             for trial, info in zip(trials, trial_info):
                 # Preprocess
                 if config.analysis_type in ['LRG']:
@@ -33,7 +33,8 @@ def dataset_analyze(config):
 
             if 'LRG' in config.analysis_type:
                 for d in range(1, 4):
-                    mLRG.LRG_condition_plot(config, trial_info, d, c)
+                    mLRG.LRG_condition_plot(config, trial_info, d)
 
-        for d in range(1, 4):
-            mLRG.LRG_allplot(config, data_info, d) 
+        if 'LRG' in config.analysis_type:
+            for d in range(1, 4):
+                mLRG.LRG_allplot(config, data_info, d)
