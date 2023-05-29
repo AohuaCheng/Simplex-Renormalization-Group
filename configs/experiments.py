@@ -14,10 +14,10 @@ from collections import OrderedDict
 from configs.configs import BaseConfig
 from utils.config_utils import vary_config
 
-def LRG_BA():
+def SRG_BA():
     config = BaseConfig()
-    config.experiment_name = 'LRG_BA'
-    config.analysis_type = 'LRG'
+    config.experiment_name = 'SRG_BA'
+    config.analysis_type = 'SRG'
     
     config.dataset = 'BA'
     config.conditions = [2]
@@ -30,10 +30,10 @@ def LRG_BA():
     configs = vary_config(config, config_ranges, mode='combinatorial')
     return configs
 
-def LRG_ER():
+def SRG_ER():
     config = BaseConfig()
-    config.experiment_name = 'LRG_ER'
-    config.analysis_type = 'LRG'
+    config.experiment_name = 'SRG_ER'
+    config.analysis_type = 'SRG'
     
     config.dataset = 'ER'
     config.conditions = [0.01]
@@ -46,10 +46,10 @@ def LRG_ER():
     configs = vary_config(config, config_ranges, mode='combinatorial')
     return configs
 
-def LRG_WS():
+def SRG_WS():
     config = BaseConfig()
-    config.experiment_name = 'LRG_WS'
-    config.analysis_type = 'LRG'
+    config.experiment_name = 'SRG_WS'
+    config.analysis_type = 'SRG'
     
     config.dataset = 'WS'
     config.conditions = [10]
@@ -62,10 +62,10 @@ def LRG_WS():
     configs = vary_config(config, config_ranges, mode='combinatorial')
     return configs
 
-def LRG_PROTEINS():
+def SRG_PROTEINS():
     config = BaseConfig()
-    config.experiment_name = 'LRG_PROTEINS'
-    config.analysis_type = 'LRG'
+    config.experiment_name = 'SRG_PROTEINS'
+    config.analysis_type = 'SRG'
     
     config.dataset = 'PROTEINS'
     config.conditions = []
@@ -78,10 +78,10 @@ def LRG_PROTEINS():
     configs = vary_config(config, config_ranges, mode='combinatorial')
     return configs
 
-def LRG_ENZYMES():
+def SRG_ENZYMES():
     config = BaseConfig()
-    config.experiment_name = 'LRG_ENZYMES'
-    config.analysis_type = 'LRG'
+    config.experiment_name = 'SRG_ENZYMES'
+    config.analysis_type = 'SRG'
     
     config.dataset = 'ENZYMES'
     config.conditions = []
@@ -94,10 +94,10 @@ def LRG_ENZYMES():
     configs = vary_config(config, config_ranges, mode='combinatorial')
     return configs
 
-def LRG_DD():
+def SRG_DD():
     config = BaseConfig()
-    config.experiment_name = 'LRG_DD'
-    config.analysis_type = 'LRG'
+    config.experiment_name = 'SRG_DD'
+    config.analysis_type = 'SRG'
     
     config.dataset = 'DD'
     config.conditions = []
@@ -110,10 +110,10 @@ def LRG_DD():
     configs = vary_config(config, config_ranges, mode='combinatorial')
     return configs
 
-def LRG_Neuro():
+def SRG_Neuro():
     config = BaseConfig()
-    config.experiment_name = 'LRG_Neuro'
-    config.analysis_type = 'LRG'
+    config.experiment_name = 'SRG_Neuro'
+    config.analysis_type = 'SRG'
     
     config.dataset = 'neuropixel'
     config.conditions = ['all']

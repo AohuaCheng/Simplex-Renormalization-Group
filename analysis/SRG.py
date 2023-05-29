@@ -14,9 +14,9 @@ import powerlaw
 from configs.config_global import FIG_DIR
 from analysis.plots import get_plot_path, get_plot_colors
 
-class multi_LRG(object):
+class SRG(object):
     def __init__(self, config, info, Adj):
-        super(multi_LRG, self).__init__()
+        super(SRG, self).__init__()
         # graph parameters
         self.dataset = config.dataset # the type of data, e.g. BA, ER
         self.Adj = Adj
@@ -27,7 +27,7 @@ class multi_LRG(object):
         if not osp.exists(self.save_path):
             os.makedirs(self.save_path)
         
-        # LRG parameters
+        # SRG parameters
         self.tau_star = config.tau_star
         self.rg_steps = 5
         # saved data of order d
@@ -42,6 +42,7 @@ class multi_LRG(object):
         self.RG_graphs = []
         self.RG_Ls = []
 
+    # adapted from https://www.geeksforgeeks.org/find-all-cliques-of-size-k-in-an-undirected-graph/
     # Function to check if the given set of vertices in store array is a clique or not
     def is_clique(self, b):
         # Run a loop for all the set of edges for the select vertex
@@ -99,7 +100,7 @@ class multi_LRG(object):
         cols = (ind.astype('int') % array_shape[1])
         return rows, cols
 
-    def LRG(self, d):
+    def SRG(self, d):
         rg_G = copy.deepcopy(self.G)
         self.RG_graphs.append(copy.deepcopy(rg_G))
         rg_L = self.laplacian_of_order(d)
@@ -173,14 +174,14 @@ class multi_LRG(object):
         nx.gpickle.write_gpickle(self.RG_graphs, osp.join(self.save_path, 'RG_graphs_d{}.gpickle'.format(d)))
         np.save(osp.join(self.save_path, 'RG_Ls_d{}.npy'.format(d)), self.RG_Ls, allow_pickle=True)
     
-    def LRG_plot(self, config, info, d):
+    def SRG_plot(self, config, info, d):
         fig_path = get_plot_path(config, info)
         sns.set(context='notebook', style='ticks', font_scale=1.5)
 
         RG_graphs = nx.gpickle.read_gpickle(osp.join(self.save_path, 'RG_graphs_d{}.gpickle'.format(d)))
         RG_Ls = np.load(osp.join(self.save_path, 'RG_Ls_d{}.npy'.format(d)), allow_pickle=True)
         
-        # LRG graph plot
+        # SRG graph plot
         for i in range(self.rg_steps+1):
             plt.figure(dpi=400)
             G_i = RG_graphs[i]
@@ -188,7 +189,7 @@ class multi_LRG(object):
             EdgeCV = range(len(list(G_i.edges())))
             nx.draw_networkx(G_i,pos=nx.random_layout(G_i),with_labels=False,node_size=100,node_color=np.diag(np.abs(L_i))/np.max(np.abs(L_i)+1)*255, cmap=mpl.colormaps['BuGn'], vmin=-80, edge_color=EdgeCV, edge_cmap=mpl.colormaps['Blues'], width=2,alpha=0.8,linewidths=1,edgecolors=[0,0.5,0.6])
             plt.axis('off')
-            plt.savefig(osp.join(fig_path, 'LRG_graphs_{}_d_{}_s{}'.format(self.dataset, d, i)+'.png'), bbox_inches='tight', pad_inches=0)
+            plt.savefig(osp.join(fig_path, 'SRG_graphs_{}_d_{}_s{}'.format(self.dataset, d, i)+'.png'), bbox_inches='tight', pad_inches=0)
             plt.close()
 
         # degree distribution
@@ -207,7 +208,7 @@ class multi_LRG(object):
         plt.xlabel('Degree')
         plt.ylabel('Probability')
         # plt.tight_layout()
-        plt.savefig(osp.join(fig_path, 'LRG_degree_distribution_{}_d_{}'.format(self.dataset, d)+'.png'), bbox_inches='tight')
+        plt.savefig(osp.join(fig_path, 'SRG_degree_distribution_{}_d_{}'.format(self.dataset, d)+'.png'), bbox_inches='tight')
         plt.close()
 
         # mean connectivity flow
@@ -226,7 +227,7 @@ class multi_LRG(object):
         plt.title('mean connectivity flow')
         plt.yticks(np.linspace(0, 3*round(max(mean_k)), 4))
         # plt.tight_layout()
-        plt.savefig(osp.join(fig_path, 'LRG_mean_connectivity_flow_{}_d_{}'.format(self.dataset, d)+'.png'), bbox_inches='tight')
+        plt.savefig(osp.join(fig_path, 'SRG_mean_connectivity_flow_{}_d_{}'.format(self.dataset, d)+'.png'), bbox_inches='tight')
         plt.close()
 
         # spectral probability distribution
@@ -246,10 +247,10 @@ class multi_LRG(object):
         plt.xlabel('Eigenvalue')
         plt.ylabel('Probability')
         plt.tight_layout()
-        plt.savefig(osp.join(fig_path, 'LRG_spectral_probability_distribution_{}_d_{}'.format(self.dataset, d)+'.png'), bbox_inches='tight')
+        plt.savefig(osp.join(fig_path, 'SRG_spectral_probability_distribution_{}_d_{}'.format(self.dataset, d)+'.png'), bbox_inches='tight')
         plt.close()
     
-    def LRG_condition_plot(self, config, trial_info, d):
+    def SRG_condition_plot(self, config, trial_info, d):
         fig_path =  osp.join(FIG_DIR, config.experiment_name, config.dataset_name)
 
         colors = get_plot_colors(self.rg_steps+1)
@@ -297,7 +298,7 @@ class multi_LRG(object):
         plt.xscale('log')
         plt.yscale('log')
         plt.tight_layout()
-        plt.savefig(osp.join(fig_path, '{}_mean_LRG_degree_spectral_distribution_{}_d_{}'.format(info[0], config.dataset, d)+'.png'), bbox_inches='tight')
+        plt.savefig(osp.join(fig_path, '{}_mean_SRG_degree_spectral_distribution_{}_d_{}'.format(info[0], config.dataset, d)+'.png'), bbox_inches='tight')
         plt.close()
 
         # legend plot
@@ -327,7 +328,7 @@ class multi_LRG(object):
                     KS.append(max(KS_))
         return KS
 
-    def LRG_allplot(self, config, data_info, d):
+    def SRG_allplot(self, config, data_info, d):
         sns.set(context='notebook', style='ticks', font_scale=2)
 
         # mean degree violin plot
@@ -400,7 +401,7 @@ class multi_LRG(object):
         plt.yscale('log')
         plt.tight_layout()
         plt.subplots_adjust(left=0.15,right=0.95,top=0.95,bottom=0.15)
-        plt.savefig(osp.join(fig_path, '{}_LRG_degree_spectral_distribution_d_{}'.format(type, d)+'.png'))
+        plt.savefig(osp.join(fig_path, '{}_SRG_degree_spectral_distribution_d_{}'.format(type, d)+'.png'))
         plt.close()
 
     def plot_scale_distribution(self, config, infos, d, type='S'):
@@ -446,7 +447,7 @@ class multi_LRG(object):
         plt.yscale('log')
         plt.tight_layout()
         plt.subplots_adjust(left=0.15,right=0.95,top=0.95,bottom=0.15)
-        plt.savefig(osp.join(fig_path, '{}_LRG_degree_spectral_distribution_d_{}'.format(type, d)+'.png'))
+        plt.savefig(osp.join(fig_path, '{}_SRG_degree_spectral_distribution_d_{}'.format(type, d)+'.png'))
         plt.close()
     
     def find_SF_infos(self, config, F_infos, d):
