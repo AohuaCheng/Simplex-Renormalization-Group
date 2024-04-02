@@ -33,18 +33,18 @@ To run the SRG, one can consider the following instances:
 G=nx.random_graphs.barabasi_albert_graph(1000,4) # Generate a a random BA network with 1000 units
 
 # Multiorder Laplacian operator
-L_List,L0_List,C_List,TrackedNodeAlignment=SRG_Flow(G,q=1,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
+L_List,L0_List,C_List,Tracked_Alignment=SRG_Flow(G,q=1,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
 
-L_List,L0_List,C_List,TrackedNodeAlignment=SRG_Flow(G,q=2,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 2-order interactions
+L_List,L0_List,C_List,Tracked_Alignment=SRG_Flow(G,q=2,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 2-order interactions
 
-L_List,L0_List,C_List,TrackedNodeAlignment=SRG_Flow(G,q=3,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 3-order interactions
+L_List,L0_List,C_List,Tracked_Alignment=SRG_Flow(G,q=3,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 3-order interactions
 
 # High-order path Laplacian
-L_List,L0_List,C_List,TrackedNodeAlignment=SRG_Flow(G,q=1,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
+L_List,L0_List,C_List,Tracked_Alignment=SRG_Flow(G,q=1,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
 
-L_List,L0_List,C_List,TrackedNodeAlignment=SRG_Flow(G,q=2,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 2-order interactions
+L_List,L0_List,C_List,Tracked_Alignment=SRG_Flow(G,q=2,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 2-order interactions
 
-L_List,L0_List,C_List,TrackedNodeAlignment=SRG_Flow(G,q=3,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 3-order interactions
+L_List,L0_List,C_List,Tracked_Alignment=SRG_Flow(G,q=3,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 3-order interactions
 ```
 
 ## Environment
