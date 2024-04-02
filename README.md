@@ -15,7 +15,7 @@ def SRG_Flow(G,q,p,L_Type,IterNum):
     return L_List,L0_List,C_List,Tracked_Alignment
 ```
 
-The main function of the SRG generates four outputs after computation. The first two outputs, **L\_List** and **L0\_List**, are the lists of operator $\mathbf{L}^{\left(q\right)}_{k}$ and operator $\mathbf{L}^{\left(p\right)}_{k}$, respectively. For instance, the first element of **L\_List** is $\mathbf{L}^{\left(q\right)}_{1}$, the second element is $\mathbf{L}^{\left(q\right)}_{2}$, and so on. The number of elements in **L\_List** and **L0\_List** is determined by **IterNum**.
+The main function of the SRG generates four outputs after computation. The first two outputs, **L\_List** and **L0\_List**, are the lists of operator $\mathbf{L}^{\left(q\right)}\_{k}$ and operator $\mathbf{L}^{\left(p\right)}\_{k}$, respectively. For instance, the first element of **L\_List** is $\mathbf{L}^{\left(q\right)}\_{1}$, the second element is $\mathbf{L}^{\left(q\right)}\_{2}$, and so on. The number of elements in **L\_List** and **L0\_List** is determined by **IterNum**.
 
 The third output, **C\_List**, is the list of specific heat $X_{1}^{\left(q\right)}$ vector calculated by the initial $q$-order Laplacian, **L\_List[0]**. The number of specific heat vector in **C\_List** is determined by the number of connected clusters in **L\_List[0]**. For instance, in the ergodicity case, **C\_List** contains only one element, which is a vector of specific heat derived on the only one connected cluster. 
 
@@ -26,7 +26,7 @@ Tracked_Alignment[0]=[[[0, [0, 1, 3]], [2, [2]], [4, [4]], [5, [5]]]]
 Tracked_Alignment[1]=[[[0, [0, 5]], [2, [2]], [4, [4]]]]
 ```
 
-OBefore renormalization, each macro-unit only contains itself (i.e., the initial unit), which can be represented by a structured list [[[0, [0]], [1, [1]], [2, [2]], [3, [3]], [4, [4]], [5, [5]]]] in the form of [macro-unit, list of the units aggregated into this macro-unit]. Note that this trivial list is not included in **Tracked\_Alignment** for convenience. After two iterations of renormalization, **Tracked\_Alignment** is a list of two elements. As shown in the instance presented above, the first element of **Tracked\_Alignment** is [[0, [0, 1, 3]], [2, [2]], [4, [4]], [5, [5]]]. This list means that there remain four macro-units after the first iteration. The first macro-unit, 0, is formed by three initial units, 0, 1, and 3. Initial units 2, 4, and 5 are not coarse grained with other units during the first iteration so they only contain themselves. The second element of is [[[0, [0, 5]], [2, [2]], [4, [4]]]], suggesting that there exist three macro-units after the second iteration. The first macro-unit is derived by grouping 0 and 5, two macro-units generated in the first iteration, together. Consequently, this macro-unit contains four initial units, whose indexes are 0, 1, 3, and 5. Other elements of $\mathbf{Tracked\_Alignment}$ can be understood in a similar way. In the non-ergodic case, $\mathbf{Tracked\_Alignment}[k][i][j]$ contains the indexes of the units aggregated into the $j$-th macro-unit in the $i$-th connected cluster after $\left(k+1\right)$-th iteration.
+OBefore renormalization, each macro-unit only contains itself (i.e., the initial unit), which can be represented by a structured list [[[0, [0]], [1, [1]], [2, [2]], [3, [3]], [4, [4]], [5, [5]]]] in the form of [macro-unit, list of the units aggregated into this macro-unit]. Note that this trivial list is not included in **Tracked\_Alignment** for convenience. After two iterations of renormalization, **Tracked\_Alignment** is a list of two elements. As shown in the instance presented above, the first element of **Tracked\_Alignment** is [[0, [0, 1, 3]], [2, [2]], [4, [4]], [5, [5]]]. This list means that there remain four macro-units after the first iteration. The first macro-unit, 0, is formed by three initial units, 0, 1, and 3. Initial units 2, 4, and 5 are not coarse grained with other units during the first iteration so they only contain themselves. The second element of is [[[0, [0, 5]], [2, [2]], [4, [4]]]], suggesting that there exist three macro-units after the second iteration. The first macro-unit is derived by grouping 0 and 5, two macro-units generated in the first iteration, together. Consequently, this macro-unit contains four initial units, whose indexes are 0, 1, 3, and 5. Other elements of **Tracked\_Alignment** can be understood in a similar way. In the non-ergodic case, **Tracked\_Alignment**$[k][i][j]$ contains the indexes of the units aggregated into the $j$-th macro-unit in the $i$-th connected cluster after $\left(k+1\right)$-th iteration.
 
 To run the SRG, one can consider the following instances:
 ```
@@ -47,7 +47,7 @@ L_List,L0_List,C_List,TrackedNodeAlignment=SRGFlow(G,q=2,p=1,L_Type='HOPL',IterN
 L_List,L0_List,C_List,TrackedNodeAlignment=SRGFlow(G,q=3,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 3-order interactions
 ```
 
-## environment
+## Environment
 
 The SRG depends on several external libraries listed below. Users should prepare these libraries before using the SRG.
 
