@@ -9,15 +9,17 @@ In application, we have a system, \textbf{G}, to process. For the SRG, we need t
 ```
 def SRG_Flow(G,q,p,L_Type,IterNum):
     A=nx.adjacency_matrix(G).toarray()       
-    L=HighOrderLaplician(A, L_Type, Order=q)
-    L0=HighOrderLaplician(A, L_Type, Order=p)
-    L_List,L0_List,C_List,Tracked_Alignment=SRG_Function(L,L0,q,IterNum)
-    return L_List,L0_List,C_List,Tracked_Alignment
+    Lq=HighOrderLaplician(A, L_Type, Order=q)
+    Lp=HighOrderLaplician(A, L_Type, Order=p)
+    Lq_List,Lp_List,Gq_List,Gp_List,C_List,Tracked_Alignment=SRG_Function(Lq,Lp,q,IterNum)
+    return  Lq_List,Lp_List,Gq_List,Gp_List,C_List,Tracked_Alignment
 ```
 
-The main function of the SRG generates four outputs after computation. The first two outputs, \textbf{L\_List} and \textbf{L0\_List}, are the lists of operator $\mathbf{L}^{\left(q\right)}_{k}$ and operator $\mathbf{L}^{\left(p\right)}_{k}$, respectively. For instance, the first element of \textbf{L\_List} is $\mathbf{L}^{\left(q\right)}_{1}$, the second element is $\mathbf{L}^{\left(q\right)}_{2}$, and so on. The number of elements in \textbf{L\_List} and \textbf{L0\_List} is determined by \textbf{IterNum}.
+The main function of the SRG generates four outputs after computation. The first two outputs, \textbf{Lq\_List} and \textbf{Lp\_List}, are the lists of operator $\mathbf{L}^{\left(q\right)}_{k}$ and operator $\mathbf{L}^{\left(p\right)}_{k}$, respectively. For instance, the first element of \textbf{L\_List} is $\mathbf{L}^{\left(q\right)}_{1}$, the second element is $\mathbf{L}^{\left(q\right)}_{2}$, and so on. The number of elements in \textbf{Lq\_List} and \textbf{Lp\_List} is determined by \textbf{IterNum}.
 
-The third output, \textbf{C\_List}, is the list of specific heat $X_{1}^{\left(q\right)}$ vector calculated by the initial $q$-order Laplacian, \textbf{L\_List[0]}. The number of specific heat vector in \textbf{C\_List} is determined by the number of connected clusters in \textbf{L\_List[0]}. For instance, in the ergodicity case, \textbf{C\_List} contains only one element, which is a vector of specific heat derived on the only one connected cluster. 
+The third and forth outputs, \textbf{Gq\_List} and \textbf{Gp\_List}, are the lists of operator $\mathbf{G}^{\left(q\right)}_{k}$ and operator $\mathbf{G}^{\left(p\right)}_{k}$, respectively. For instance, the first element of \textbf{Gq\_List} is $\mathbf{G}^{\left(q\right)}_{1}$, the second element is $\mathbf{G}^{\left(q\right)}_{2}$, and so on. The number of elements in \textbf{Gq\_List} and \textbf{Gp\_List} is determined by \textbf{IterNum}.
+
+The fifth output, \textbf{C\_List}, is the list of specific heat $X_{1}^{\left(q\right)}$ vector calculated by the initial $q$-order Laplacian, \textbf{Lq\_List[0]}. The number of specific heat vector in \textbf{C\_List} is determined by the number of connected clusters in \textbf{Lq\_List[0]}. For instance, in the ergodicity case, \textbf{C\_List} contains only one element, which is a vector of specific heat derived on the only one connected cluster. 
 
 The last output of the main function is \textbf{Tracked\_Alignment}, which indicates the indexes of the initial units aggregated into each macro-unit in every connected cluster after the $k$-th iteration of the SRG. Below, we present a simple instance where system \textbf{G} contains only six units and satisfies the ergodicity. 
 
@@ -30,21 +32,21 @@ OBefore renormalization, each macro-unit only contains itself (i.e., the initial
 
 To run the SRG, one can consider the following instances:
 ```
-G=nx.random_graphs.barabasi_albert_graph(1000,4) # Generate a a random BA network with 1000 units
+G=nx.random_graphs.barabasi_albert_graph(1000,3) # Generate a random BA network with 1000 units
 
 # Multiorder Laplacian operator
-L_List,L0_List,C_List,TrackedNodeAlignment=SRGFlow(G,q=1,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
+Lq_List,Lp_List,Gq_List,Gp_List,C_List,Tracked_Alignment=SRG_Flow(G,q=1,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
 
-L_List,L0_List,C_List,TrackedNodeAlignment=SRGFlow(G,q=2,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
+Lq_List,Lp_List,Gq_List,Gp_List,C_List,Tracked_Alignment=SRG_Flow(G,q=2,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 2-order interactions
 
-L_List,L0_List,C_List,TrackedNodeAlignment=SRGFlow(G,q=3,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
+Lq_List,Lp_List,Gq_List,Gp_List,C_List,Tracked_Alignment=SRG_Flow(G,q=3,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 3-order interactions
 
 # High-order path Laplacian
-L_List,L0_List,C_List,TrackedNodeAlignment=SRGFlow(G,q=1,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
+Lq_List,Lp_List,Gq_List,Gp_List,C_List,Tracked_Alignment=SRG_Flow(G,q=1,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
 
-L_List,L0_List,C_List,TrackedNodeAlignment=SRGFlow(G,q=2,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
+Lq_List,Lp_List,Gq_List,Gp_List,C_List,Tracked_Alignment=SRG_Flow(G,q=2,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 2-order interactions
 
-L_List,L0_List,C_List,TrackedNodeAlignment=SRGFlow(G,q=3,p=1,L_Type='MOL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 1-order interactions
+Lq_List,Lp_List,Gq_List,Gp_List,C_List,Tracked_Alignment=SRG_Flow(G,q=3,p=1,L_Type='HOPL',IterNum=5) # Run a SRG for 5 iterations, which renormalize the system on the 1-order based on the 3-order interactions
 ```
 
 ## environment
@@ -61,11 +63,8 @@ conda activate SRG
 conda install copy
 conda install numpy
 conda install scipy
-conda install matplotlib
-conda install seaborn
 conda install networkx
 conda install itertools
-pip3_path_in_your_conda_env/pip3 install powerlaw # e.g. ~/miniconda3/envs/Neuro-RG/bin/pip3 install powerlaw
 ```
 
 ## Citation
